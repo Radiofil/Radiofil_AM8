@@ -1,0 +1,14 @@
+FROM debian:bullseye
+ENV DEBIAN_FRONTEND=noninteractive \
+    GLIBC_VERSION=2.31 \
+    PREFIX_DIR=/usr/glibc-compat
+RUN apt-get -q update \
+	&& apt-get -qy install --no-install-recommends \
+		bison \
+		gcc-aarch64-linux-gnu \
+		libc6-dev-arm64-cross \
+		gawk \
+		gettext \
+		texinfo \
+		wget
+

@@ -53,6 +53,8 @@
 #include <linux/types.h>
 #include <errno.h>
 #include <termios.h> // Contains POSIX terminal control definitions
+#include <dirent.h>
+#include <stdio.h>
 
 int fd[MAX_FREQ]; // file descriptor fifo
 
@@ -68,8 +70,9 @@ struct row {
 
 struct row tabel[MAX_FREQ+1]; // tabel[0] contient le nom de la liste
 
+//***************************************************************************//
 void init(int i) {
-char str[STR_LEN];
+  char str[STR_LEN];
 
   sprintf(str,"mkfifo -m 0777 /var/tmp/mpd.fifo%02d",i);
   printf("%s\n",str);
@@ -108,8 +111,9 @@ char str[STR_LEN];
   fd[i] = open(str, O_RDONLY | O_NONBLOCK);
   if(!fd[i]) printf("Erreur ouverture Fifo %i\n",i);
 }
+//***************************************************************************//
 
-
+//***************************************************************************//
 int ZoekFreqHttp(char *line, int *type_source,int *freq, char *url, char *nom, int *idx) {
 
 char *virgule;
@@ -123,9 +127,9 @@ strcpy(url,strtok_r(NULL,",",&virgule));
 if (strstr(url,"http")) { *idx = IDX_URL ;} else { *idx = IDX_LOCAL;}
   return(1);
 }
+//***************************************************************************//
 
-
-
+//***************************************************************************//
 int LeesFile(void)
 {
     FILE * fp;
@@ -171,7 +175,53 @@ printf ("freq %i - nom %s - url %s - conf %i\n",tabel[cnt].freq,tabel[cnt].nom,t
     fclose(fp);
     return(cnt-1);
 }
+//***************************************************************************//
 
+//***************************************************************************//
+// Fonction check_serial
+// Vérifie la présence d'un unique port série dans /dev/serial
+// Entree(s): char *dev_name nom du port série si trouvé
+// Sortie(s) : int -1 si erreur (pas de port ou plusieurs ports), 1 sinon
+//***************************************************************************//
+int check_serial(char *dev_name)
+{
+	struct dirent *entry;         
+	struct stat s;
+	DIR *dev_serial;
+	const char* folder;
+	folder = "/dev/serial/by-id";
+	int count = 0;
+	
+	// Si pas de dossier /dev/serial/by-id alors pas de port série
+	if (stat(folder, &s) != 0 && !S_ISDIR(s.st_mode))
+	{
+		return -1;
+    } 
+	
+	//Le dossier /dev/serial/by-id existe
+	dev_serial = opendir(folder);
+
+	// Balayage du dossier /dev/serial/by-id avec filtre sur les éléments possédant un lien symbolique
+	while ((entry = readdir(dev_serial)) != NULL)
+	{
+        if(entry->d_type == DT_LNK)
+		{
+			sprintf(dev_name, "/dev/serial/by-id/%s", entry->d_name);
+			count++;
+		}
+    }
+    closedir(dev_serial);
+	
+	// Il y a plus d'un élément
+	if (count > 1)
+	{
+		return -1;
+	}
+	
+	// On a trouvé un seul port série
+	return 1;
+}
+//***************************************************************************//
 
 
 int main() {
@@ -189,23 +239,29 @@ int main() {
  long sc[MAX_FREQ];
 
  FILE *fp_relance;
- int num_relance;
- char *relance, *rm_diffusion, *ordre_gpio_on;
+ FILE *fp_etat; 
+ int num_relance, ls_status;
+ char *relance, *rm_diffusion, *ordre_gpio_on, *port_name;
 
  relance = (char *)malloc(LEN * sizeof(char));
  rm_diffusion = (char *)malloc(LEN * sizeof(char));
  ordre_gpio_on = (char *)malloc(LEN * sizeof(char));
-
+ port_name = (char *)malloc(LEN * sizeof(char));
+ 
  sprintf (relance, "%s/etat/relance",HOME_DIR);
  sprintf (rm_diffusion, "rm %s/etat/relance ; rm %s/etat/diffuser",HOME_DIR,HOME_DIR);
  sprintf (ordre_gpio_on,"gpio write %i 1",PORT_LED_DIFF);
 
  LM1 = LEN -1;
 
- int serial_port = open("/dev/ttyACM0", O_RDWR);
-
- if(serial_port<0) {close(serial_port); printf ("AM8 absent, on stoppe %i\n",serial_port); return(-1);}; // sans platine = arrêter
-
+ 
+ if (check_serial(port_name) < 0)
+ {
+	 printf ("AM8 absent, on stoppe"); 
+	 return(-1);
+ } // sans platine = arrêter
+ 
+ int serial_port = open(port_name, O_RDWR);
 
   // Create new termios struct, we call it 'tty' for convention
   struct termios tty;
@@ -303,10 +359,13 @@ int main() {
 system (ordre_gpio_on);
 
  while(1){
+   
    for(ii=0; ii<nbr_stations; ii++){
-         i = ii & 7;
-           gettimeofday(&tnu, NULL);
-         if(read(fd[i+1], &b1, 2)==2){
+   
+		 i = ii & 7;
+         gettimeofday(&tnu, NULL);
+         
+		 if(read(fd[i+1], &b1, 2)==2){
 
          //  bb1 = (b1 + 32767)>>8;
 
@@ -332,7 +391,7 @@ system (ordre_gpio_on);
 ** 27-NOV-23 : 
 ** On ne scrute pas les coupures de flux pour les sources EXT (type = 3)
 */
-           if((tabel[ii+1].type != 3) && (tnu.tv_sec - sc[i])>5)
+           if((tabel[ii+1].type != 3) && (tnu.tv_sec - sc[i])> MAX_COUPURE)
                           {
 /* 
 ** Nous avons détecté une coupure de réception d'un flux internet 
@@ -340,33 +399,37 @@ system (ordre_gpio_on);
 ** Suite à une MAX_RELANCE relance, nous stoppons la diffusion pour que
 ** l'utilisateur puisse reprendre la main via l'IHM
 */
-                          fp_relance = fopen (relance,"r+");
-                          if (!fp_relance) { /* premiere relance */
-                                           fp_relance = fopen (relance,"w");
-                                           fprintf (fp_relance,"%i",1);
-                                           fclose (fp_relance);
-                                           system("reboot");
-                                           } 
-                          else { /* ce n'est pas la premiere relance */
-                                fscanf (fp_relance,"%i",&num_relance);
-                                if (num_relance < MAX_RELANCE) 
-                                    {
-                                    rewind (fp_relance);
-                                    fprintf (fp_relance,"%i",++num_relance);
-                                    fclose (fp_relance);
-                                    system("reboot"); 
-                                    }
-                                else { /* MAX_RELANCE sont faites, on stoppe la diffusion, on ne relance pas */
-                                     fclose (fp_relance);
-                                     system (rm_diffusion);
-                                     /* donnons un peu de temps a lance_am8 pour comprendre qu'il faut stopper la diff */
-				     sleep(10);
-                                     }
+                          system (rm_diffusion);
+						  printf("Coupure detectee sur flux %d \n",i);
+						  sleep(10);
+						  // fp_relance = fopen (relance,"r+");
+                          // if (!fp_relance) { /* premiere relance */
+                                           // fp_relance = fopen (relance,"w");
+                                           // fprintf (fp_relance,"%i",1);
+                                           // fclose (fp_relance);
+                                           // system("reboot");
+                                           // } 
+                          // else { /* ce n'est pas la premiere relance */
+                                // fscanf (fp_relance,"%i",&num_relance);
+                                // if (num_relance < MAX_RELANCE) 
+                                    // {
+                                    // rewind (fp_relance);
+                                    // fprintf (fp_relance,"%i",++num_relance);
+                                    // fclose (fp_relance);
+                                    // system("reboot"); 
+                                    // }
+                                // else { /* MAX_RELANCE sont faites, on stoppe la diffusion, on ne relance pas */
+                                     // fclose (fp_relance);
+                                     // system (rm_diffusion);
+                                     // /* donnons un peu de temps a lance_am8 pour comprendre qu'il faut stopper la diff */
+									// sleep(10);
+                                     // }
                                    
-                                } 
-                          } /* fin du traitement des coupures de flux audio */
+                                // } 
+                          // } /* fin du traitement des coupures de flux audio */
 
            }; // end if
+		}
      } // end for
 
    }; // end while

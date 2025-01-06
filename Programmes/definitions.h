@@ -11,6 +11,7 @@
 #define IDX_URL 0 // mpd0x.conf pour les sources URL
 #define IDX_LOCAL 10 // mpd1x.conf pour les sources locales
 #define MAX_RELANCE 5
+#define MAX_COUPURE 10
 
 #define PORT_LED_ON 9  // LED Temoin Allumage AM8 - PC15 donc GPIO79 dont le port 9 pour WiringOP
 #define PORT_LED_DIFF 10  // LED Temoin Diffusion - PC14 donc GPIO78 dont le port 9 pour WiringOP
