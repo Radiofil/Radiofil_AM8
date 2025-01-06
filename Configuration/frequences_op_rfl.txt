@@ -1,0 +1,9 @@
+0,France-Usine_rfl,0,0,0
+162,France Inter,FR,1,http://icecast.radiofrance.fr/franceinter-midfi.mp3
+183,Europe 1,FR,1,http://stream.europe1.fr/europe1.mp3?aw_0_1st.playerid=lgrdrnwsRadioPlayerE1
+216,RMC Info Talk Sport,FR,1,https://audio.bfmtv.com/rmcradio_128.mp3?aw_0_1st.playerId=RMC_audio_web&aggregator=RMC_audio_web
+234,RTL,FR,1,https://icecast.rtl.fr/rtl-1-44-128?listen=webGJmqBU59boQ7rZDjrGO5e4
+702,France Culture,FR,1,http://direct.franceculture.fr/live/franceculture-lofi.mp3
+855,Radio Classique,FR,1,http://radioclassique.ice.infomaniak.ch/radioclassique-high.mp3
+1215,Nostalgie,FR,1,https://scdn.nrjaudio.fm/audio1/fr/30601/mp3_128.mp3
+1557,France Info,FR,1,http://direct.franceinfo.fr/live/franceinfo-midfi.mp3

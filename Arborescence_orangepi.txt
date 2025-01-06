@@ -1,0 +1,95 @@
+Arborescence d'installation des logiciels et de l'IHM sur l'OrangePI Zero
+/home/orangepi/amt (am8.tar)
+├── bin
+│   ├── am031
+│   ├── lance_am8
+│   └── maj_am8
+├── etat
+│   ├── allumer
+│   └── diffuser
+├── ini
+│   ├── mpd01.conf
+│   ├── mpd02.conf
+│   ├── mpd03.conf
+│   ├── mpd04.conf
+│   ├── mpd05.conf
+│   ├── mpd06.conf
+│   ├── mpd07.conf
+│   ├── mpd08.conf
+│   ├── mpd11.conf
+│   ├── mpd12.conf
+│   ├── mpd13.conf
+│   ├── mpd14.conf
+│   ├── mpd15.conf
+│   ├── mpd16.conf
+│   ├── mpd17.conf
+│   ├── mpd18.conf
+│   └── parms.ini
+├── listes
+│   ├── 400Hz-Usine_rfl.lst
+│   ├── France-Usine_rfl.lst
+│   ├── frequences_op_rfl.txt
+│   ├── liste_stations_rfl.txt
+│   ├── liste_stations.txt
+│   ├── plan_freqs_rfl.txt
+├── media
+│   └── S0400.mp3
+├── scripts
+│   ├── compilation.sh
+│   ├── eteindre_am8.sh
+│   ├── start.sh
+│   └── stopper_am8.sh
+└── syst
+    ├── maj_am8.sh
+    ├── url_serveur.txt
+    ├── version_locale.txt
+    ├── version.txt
+    └── wget.log
+	
+/var/www/html/ (IHM.tar)
+├── css
+│   └── am8.css
+├── img
+│   ├── bloc_touche.jpg
+│   ├── boutons.png
+│   ├── btn_arr.jpg
+│   ├── btn_conf.jpg
+│   ├── btn_diff.jpg
+│   ├── btn_freq.jpg
+│   ├── btn_m_a.jpg
+│   ├── btn_mem.jpg
+│   ├── btn_neutre.jpg
+│   ├── btn_nom.jpg
+│   ├── btn_sel.jpg
+│   ├── btn_sour.jpg
+│   ├── btn_syst.jpg
+│   ├── Cadran_allume.jpg
+│   ├── Cadran_amplix.jpg
+│   ├── Cadran_eteint.jpg
+│   ├── cadran.png
+│   ├── clavier.jpg
+│   ├── favicon.ico
+│   ├── jaune.jpg
+│   ├── logo_c_2022.png
+│   ├── module_table_bottom.png
+│   ├── module_table_top.png
+│   ├── oeil_eteint.jpg
+│   ├── oeil_ferme.jpg
+│   ├── oeil_ouvert.jpg
+│   ├── on_air_allume.jpg
+│   ├── on_air_eteint.jpg
+│   ├── radiofil-nom.png
+│   ├── radiofil-org-logo.png
+│   ├── radiofil-slogan.png
+│   ├── rouge.jpg
+│   ├── touche_enfoncee.png
+│   ├── touche_ma_off.jpg
+│   ├── touche_ma_on.jpg
+│   ├── touche.png
+│   └── vert.jpg
+├── inc
+│   ├── define.php
+│   ├── fonctions.php
+│   └── style.php
+├── index_apache.html
+├── index.php
